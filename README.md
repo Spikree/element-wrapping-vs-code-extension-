@@ -1,71 +1,73 @@
 # html-wrapper- README
 
-This is the README for your extension "html-wrapper-". After writing up a brief description, we recommend including the following sections.
+Welcome to the README for your "html-wrapper-" extension! This document provides information about the features, requirements, installation instructions, and more for your extension.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+This extension allows you to  wrap your HTML code in a `<div>` element
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+recomended to use with the prettier extension
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+add this in your keybindings.json
 
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+[
+    {
+        "key": "ctrl+1",
+        "command": "html-wrapper-.wrapper",
+        "when": "editorTextFocus"
+    }    
+    
+]
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+you can only wrap an element with a div tag (we will add more  support for other tags soon)
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+you can wrap selected element in a div tag you dont have to search for the ending tag.
 
-### 1.0.0
+### 0.0.1
 
-Initial release of ...
+- Initial release
 
-### 1.0.1
+### 0.0.1
 
-Fixed issue #.
+- published extension
 
-### 1.1.0
+## Installation
 
-Added features X, Y, and Z.
+Open Visual Studio Code.
 
----
+Go to the "View" menu, and select "Command Palette" (or use the shortcut Ctrl+Shift+P or Cmd+Shift+P on macOS).
 
-## Following extension guidelines
+Type "Preferences: Open Keyboard Shortcuts (JSON)" and select it from the dropdown. This will open the keybindings.json file in JSON format.
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+In the keybindings.json file, you can add your custom key bindings using the following format:
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+[
+    {
+        "key": "ctrl+1",
+        "command": "html-wrapper-.wrapper",
+        "when": "editorTextFocus"
+    }    
+    
+]
 
-## Working with Markdown
+## Licence
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+The MIT License (MIT)
+Copyright © 2024 Spikree, <avimahalingpure10@gmail.com>
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-## For more information
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 **Enjoy!**

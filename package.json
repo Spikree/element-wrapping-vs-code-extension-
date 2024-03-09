@@ -1,8 +1,10 @@
 {
-  "name": "html-wrapper-",
-  "displayName": "html wrapper ",
+  "name": "wrapper-html",
+  "displayName": "wrapper html",
+  "icon": "image.png",
   "description": "",
-  "version": "0.0.1",
+  "publisher": "Spikey",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.87.0"
   },

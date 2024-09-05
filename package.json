@@ -1,8 +1,9 @@
 {
-  "name": "html-wrapper-",
-  "displayName": "HTML Wrapper",
+  "name": "wrapper-html",
+  "displayName": "wrapper html",
   "description": "An extension to wrap selected text with an HTML tag.",
-  "version": "0.0.1",
+  "publisher": "Spikey",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.87.0"
   },
@@ -46,6 +47,8 @@
     "@vscode/test-electron": "^2.3.9",
     "eslint": "^8.56.0",
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "vsce": "^1.97.0"
   }
-
 }

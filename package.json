@@ -3,7 +3,7 @@
   "displayName": "wrapper html",
   "description": "An extension to wrap selected text with an HTML tag.",
   "publisher": "Spikey",
-  "version": "0.1.0",
+  "version": "2.0.0",
   "engines": {
     "vscode": "^1.87.0"
   },
@@ -14,6 +14,7 @@
     "onCommand:html-wrapper.wrapper"
   ],
   "main": "./out/extension.js",
+  "icon": "image.png",
   "contributes": {
     "commands": [
       {

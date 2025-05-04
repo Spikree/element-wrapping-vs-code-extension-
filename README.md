@@ -8,13 +8,7 @@
 
 ## Demo Video
 
-
 https://github.com/user-attachments/assets/8dc17ec9-7bf7-4803-b850-2b9e524fbc60
-
-
-
-
-
 
 ## Features
 
@@ -43,13 +37,19 @@ If the default keybinding conflicts with another extension or setting, you can c
     }
 ]
 ```
+
 ### Known Issues
 Currently, the extension fully supports wrapping elements with a range of block-level tags. Future updates will include enhanced support for additional tags.
 
 ## Release Notes
-### v2.0.0
-- Full support for wrapping selected elements with a variety of HTML tags.
-- Automatic identification of closing tags.
+
+### v2.0.1
+- Added smart indentation support for better code formatting
+- Improved tag matching for nested HTML structures
+- Added support for HTML attributes (like href for anchor tags)
+- Enhanced error handling and user feedback
+- Better handling of long documents and complex HTML structures
+- Improved formatting preservation for both single-line and multi-line content
 
 ## Installation
 Open Visual Studio Code.

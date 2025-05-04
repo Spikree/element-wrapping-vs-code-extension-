@@ -164,7 +164,7 @@ function formatWrappedText(content: string, tagName: string, attributes: string,
   
   // Split content into lines and add proper indentation
   const lines = content.split('\n');
-  const formattedLines = lines.map((line, index) => {
+  const formattedLines = lines.map((line) => {
     // Skip indentation for the first line if it's just a single line
     if (lines.length === 1) {
       return line;

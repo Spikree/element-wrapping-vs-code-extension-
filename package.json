@@ -1,7 +1,7 @@
 {
   "name": "wrapper-html",
   "displayName": "wrapper html",
-  "description": "An extension to wrap selected text with an HTML tag.",
+  "description": "An extension to wrap selected text with an HTML tag while maintaining proper indentation and structure.",
   "publisher": "Spikey",
   "version": "2.0.0",
   "engines": {

@@ -93,9 +93,8 @@ export function activate(context: vscode.ExtensionContext) {
         if (!openingTag) {
           // If no opening tag found, wrap the selection itself
           if (!selection.isEmpty) {
-            const wrappedText = attributes 
-              ? `<${tag.label} ${attributes}>\n${selectedText}\n</${tag.label}>`
-              : `<${tag.label}>\n${selectedText}\n</${tag.label}>`;
+            const indentation = getIndentation(textEditor.document, selection.start.line);
+            const wrappedText = formatWrappedText(selectedText, tag.label, attributes, indentation);
             
             const success = await textEditor.edit((editBuilder: vscode.TextEditorEdit) => {
               editBuilder.replace(selection, wrappedText);
@@ -116,14 +115,14 @@ export function activate(context: vscode.ExtensionContext) {
           return;
         }
 
-        // Wrap the entire HTML element with the specified tag
+        // Get the content to wrap and its indentation
         const contentToWrap = textEditor.document.getText(
           new vscode.Range(openingTag.start, closingTag.end)
         );
+        const indentation = getIndentation(textEditor.document, openingTag.start.line);
         
-        const wrappedText = attributes 
-          ? `<${tag.label} ${attributes}>\n${contentToWrap}\n</${tag.label}>`
-          : `<${tag.label}>\n${contentToWrap}\n</${tag.label}>`;
+        // Format the wrapped text with proper indentation
+        const wrappedText = formatWrappedText(contentToWrap, tag.label, attributes, indentation);
 
         // Replace the selected HTML content with the wrapped text
         const success = await textEditor.edit((editBuilder: vscode.TextEditorEdit) => {
@@ -152,6 +151,40 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {}
+
+function getIndentation(document: vscode.TextDocument, lineNumber: number): string {
+  const line = document.lineAt(lineNumber).text;
+  const match = line.match(/^\s*/);
+  return match ? match[0] : '';
+}
+
+function formatWrappedText(content: string, tagName: string, attributes: string, indentation: string): string {
+  const tabSize = 2; // You can adjust this based on your preferences
+  const innerIndentation = indentation + ' '.repeat(tabSize);
+  
+  // Split content into lines and add proper indentation
+  const lines = content.split('\n');
+  const formattedLines = lines.map((line, index) => {
+    // Skip indentation for the first line if it's just a single line
+    if (lines.length === 1) {
+      return line;
+    }
+    // Add inner indentation to all lines except empty ones
+    return line.trim() ? innerIndentation + line : line;
+  });
+
+  // Join lines and add the wrapper tag
+  const formattedContent = formattedLines.join('\n');
+  const openingTag = attributes ? `<${tagName} ${attributes}>` : `<${tagName}>`;
+  
+  // If content is a single line, keep it on one line
+  if (lines.length === 1) {
+    return `${openingTag}${formattedContent}</${tagName}>`;
+  }
+  
+  // For multi-line content, add proper line breaks and indentation
+  return `${openingTag}\n${formattedContent}\n${indentation}</${tagName}>`;
+}
 
 function findOpeningTag(
   document: vscode.TextDocument,

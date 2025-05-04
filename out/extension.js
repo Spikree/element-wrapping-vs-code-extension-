@@ -25,58 +25,116 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = void 0;
 const vscode = __importStar(require("vscode"));
+const HTML_TAGS = [
+    { label: "div", description: "Generic container" },
+    { label: "section", description: "Thematic grouping of content" },
+    { label: "article", description: "Self-contained composition" },
+    { label: "header", description: "Introductory content" },
+    { label: "footer", description: "Footer content" },
+    { label: "main", description: "Main content" },
+    { label: "nav", description: "Navigation section" },
+    { label: "aside", description: "Sidebar content" },
+    { label: "form", description: "Form container" },
+    { label: "table", description: "Table container" },
+    { label: "blockquote", description: "Block quotation" },
+    { label: "ul", description: "Unordered list" },
+    { label: "ol", description: "Ordered list" },
+    { label: "span", description: "Inline container" },
+    { label: "a", description: "Hyperlink", attributes: ["href"] },
+    { label: "strong", description: "Strong importance" },
+    { label: "em", description: "Emphasized text" },
+    { label: "code", description: "Code snippet" },
+    { label: "mark", description: "Marked text" },
+];
 function activate(context) {
-    console.log('Congratulations, your extension "html-wrapper-" is now active!');
-    let disposable = vscode.commands.registerTextEditorCommand('html-wrapper.wrapper', async (textEditor, edit) => {
+    console.log('HTML Wrapper extension is now active!');
+    let disposable = vscode.commands.registerTextEditorCommand("html-wrapper.wrapper", async (textEditor) => {
         try {
-            // Show Quick Pick to select a tag
-            const tags = [
-                'div', 'section', 'article', 'header', 'footer', 'main', 'nav', 'aside', 'form', 'table',
-                'blockquote', 'ul', 'ol', 'span', 'a', 'strong', 'em', 'code', 'mark'
-            ];
-            const tag = await vscode.window.showQuickPick(tags, {
-                placeHolder: 'Select the HTML tag to wrap with'
+            // Get the selected text or the current line if no selection
+            const selection = textEditor.selection;
+            const selectedText = textEditor.document.getText(selection);
+            // If there's no selection, try to find the tag at cursor position
+            if (selection.isEmpty) {
+                const cursorPosition = selection.active;
+                const line = textEditor.document.lineAt(cursorPosition.line).text;
+                // Check if cursor is inside a tag
+                const openingTag = findOpeningTag(textEditor.document, cursorPosition);
+                if (!openingTag) {
+                    vscode.window.showErrorMessage("Please select an HTML element or place cursor inside one.");
+                    return;
+                }
+            }
+            // Show Quick Pick to select a tag with descriptions
+            const tag = await vscode.window.showQuickPick(HTML_TAGS.map(tag => ({
+                label: tag.label,
+                description: tag.description,
+                detail: tag.attributes ? `Available attributes: ${tag.attributes.join(', ')}` : undefined
+            })), {
+                placeHolder: "Select the HTML tag to wrap with",
+                matchOnDescription: true,
+                matchOnDetail: true
             });
             if (!tag) {
-                vscode.window.showInformationMessage('No tag selected. Aborting wrap operation.');
+                vscode.window.showInformationMessage("No tag selected. Aborting wrap operation.");
                 return;
             }
-            console.log(`Selected tag: ${tag}`);
-            const selection = textEditor.selection;
+            // Get attributes if the tag has them
+            let attributes = '';
+            const selectedTag = HTML_TAGS.find(t => t.label === tag.label);
+            if (selectedTag?.attributes?.length) {
+                const attributeValues = await Promise.all(selectedTag.attributes.map(async (attr) => {
+                    const value = await vscode.window.showInputBox({
+                        prompt: `Enter value for ${attr} attribute`,
+                        placeHolder: `Enter ${attr} value...`
+                    });
+                    return value ? `${attr}="${value}"` : '';
+                }));
+                attributes = attributeValues.filter(v => v).join(' ');
+            }
             const startPosition = selection.start;
             const openingTag = findOpeningTag(textEditor.document, startPosition);
             if (!openingTag) {
-                vscode.window.showInformationMessage('Failed to find matching opening tag.');
+                // If no opening tag found, wrap the selection itself
+                if (!selection.isEmpty) {
+                    const wrappedText = attributes
+                        ? `<${tag.label} ${attributes}>\n${selectedText}\n</${tag.label}>`
+                        : `<${tag.label}>\n${selectedText}\n</${tag.label}>`;
+                    const success = await textEditor.edit((editBuilder) => {
+                        editBuilder.replace(selection, wrappedText);
+                    });
+                    if (success) {
+                        vscode.window.showInformationMessage(`Text wrapped in <${tag.label}> successfully!`);
+                    }
+                    return;
+                }
+                vscode.window.showErrorMessage("Failed to find HTML element to wrap.");
                 return;
             }
-            console.log(`Opening tag found: ${textEditor.document.getText(openingTag)}`);
             const closingTag = findClosingTag(textEditor.document, openingTag);
             if (!closingTag) {
-                vscode.window.showInformationMessage('Failed to find matching closing tag.');
+                vscode.window.showErrorMessage("Failed to find matching closing tag.");
                 return;
             }
-            console.log(`Closing tag found: ${textEditor.document.getText(closingTag)}`);
             // Wrap the entire HTML element with the specified tag
             const contentToWrap = textEditor.document.getText(new vscode.Range(openingTag.start, closingTag.end));
-            const wrappedText = `<${tag}>\n${contentToWrap}\n</${tag}>`;
+            const wrappedText = attributes
+                ? `<${tag.label} ${attributes}>\n${contentToWrap}\n</${tag.label}>`
+                : `<${tag.label}>\n${contentToWrap}\n</${tag.label}>`;
             // Replace the selected HTML content with the wrapped text
-            textEditor.edit(editBuilder => {
+            const success = await textEditor.edit((editBuilder) => {
                 editBuilder.replace(new vscode.Range(openingTag.start, closingTag.end), wrappedText);
-            }).then(success => {
-                if (success) {
-                    vscode.window.showInformationMessage(`HTML element wrapped in <${tag}> successfully!`);
-                }
-                else {
-                    vscode.window.showInformationMessage('Failed to replace text. Try again.');
-                }
-            }, error => {
-                vscode.window.showErrorMessage('An error occurred while replacing text.');
-                console.error('Error occurred while executing command:', error);
             });
+            if (success) {
+                vscode.window.showInformationMessage(`HTML element wrapped in <${tag.label}> successfully!`);
+            }
+            else {
+                vscode.window.showErrorMessage("Failed to replace text. Try again.");
+            }
         }
         catch (error) {
-            console.error('Error occurred while executing command:', error);
-            vscode.window.showErrorMessage('An error occurred while executing the command.');
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            vscode.window.showErrorMessage(`Error: ${errorMessage}`);
+            console.error("Error in HTML wrapper:", error);
         }
     });
     context.subscriptions.push(disposable);
@@ -85,37 +143,89 @@ exports.activate = activate;
 function deactivate() { }
 exports.deactivate = deactivate;
 function findOpeningTag(document, position) {
-    const openingTagRegex = /<\w+/g;
+    const openingTagRegex = /<[a-zA-Z][a-zA-Z0-9-]*(?:\s+[^>]*)?>/g;
     let lineNumber = position.line;
+    let bestMatch;
+    let bestMatchDistance = Infinity;
+    // First, check the current line and a few lines above
     while (lineNumber >= 0) {
         const lineText = document.lineAt(lineNumber).text;
         const matches = [...lineText.matchAll(openingTagRegex)];
-        const tagMatch = matches.find(match => position.character >= match.index && position.character <= match.index + match[0].length);
-        if (tagMatch) {
-            const startCharacter = tagMatch.index;
-            return new vscode.Range(new vscode.Position(lineNumber, startCharacter), new vscode.Position(lineNumber, startCharacter + tagMatch[0].length));
+        for (const match of matches) {
+            const startChar = match.index;
+            const endChar = startChar + match[0].length;
+            // If we're on the same line as the position
+            if (lineNumber === position.line) {
+                // If position is within the tag
+                if (position.character >= startChar && position.character <= endChar) {
+                    return new vscode.Range(new vscode.Position(lineNumber, startChar), new vscode.Position(lineNumber, endChar));
+                }
+                // If position is after the tag, keep track of the closest tag
+                else if (position.character > endChar) {
+                    const distance = position.character - endChar;
+                    if (distance < bestMatchDistance) {
+                        bestMatchDistance = distance;
+                        bestMatch = new vscode.Range(new vscode.Position(lineNumber, startChar), new vscode.Position(lineNumber, endChar));
+                    }
+                }
+            }
+            // For lines above, keep track of the last tag found
+            else if (lineNumber < position.line) {
+                bestMatch = new vscode.Range(new vscode.Position(lineNumber, startChar), new vscode.Position(lineNumber, endChar));
+            }
+        }
+        // If we found a match on the current line, return it
+        if (lineNumber === position.line && bestMatch) {
+            return bestMatch;
         }
         lineNumber--;
     }
-    return undefined;
+    return bestMatch;
 }
 function findClosingTag(document, openingTagRange) {
     const openingTagText = document.getText(openingTagRange);
-    const openingTagName = openingTagText.match(/<(\w+)/)?.[1];
-    if (openingTagName) {
-        const closingTagPattern = `</${openingTagName}>`;
-        const closingTagRegex = new RegExp(closingTagPattern, 'i');
-        let lineNumber = openingTagRange.start.line;
-        while (lineNumber < document.lineCount) {
-            const lineText = document.lineAt(lineNumber).text;
-            const match = lineText.match(closingTagRegex);
-            if (match) {
-                const startCharacter = lineText.indexOf(match[0]);
-                return new vscode.Range(new vscode.Position(lineNumber, startCharacter), new vscode.Position(lineNumber, startCharacter + match[0].length));
-            }
-            lineNumber++;
-        }
+    const tagNameMatch = openingTagText.match(/<([a-zA-Z][a-zA-Z0-9-]*)/);
+    if (!tagNameMatch) {
+        return undefined;
     }
-    return undefined;
+    const tagName = tagNameMatch[1];
+    const closingTagRegex = new RegExp(`</${tagName}>`, "gi");
+    const openingTagRegex = new RegExp(`<${tagName}(?:\\s+[^>]*)?>`, "gi");
+    let lineNumber = openingTagRange.start.line;
+    let tagCount = 1;
+    let lastClosingTag;
+    // First pass: count tags and find the matching closing tag
+    while (lineNumber < document.lineCount) {
+        const lineText = document.lineAt(lineNumber).text;
+        // Count opening tags in this line
+        const openingMatches = lineText.match(openingTagRegex) || [];
+        // Count closing tags in this line
+        const closingMatches = lineText.match(closingTagRegex) || [];
+        // Skip the first opening tag if we're on the same line as the opening tag range
+        if (lineNumber === openingTagRange.start.line) {
+            tagCount += openingMatches.length - 1;
+        }
+        else {
+            tagCount += openingMatches.length;
+        }
+        tagCount -= closingMatches.length;
+        // Found a potential closing tag
+        if (closingMatches.length > 0) {
+            const lastClosingTagMatch = [...lineText.matchAll(closingTagRegex)].pop();
+            if (lastClosingTagMatch) {
+                const startChar = lastClosingTagMatch.index;
+                const endChar = startChar + lastClosingTagMatch[0].length;
+                lastClosingTag = new vscode.Range(new vscode.Position(lineNumber, startChar), new vscode.Position(lineNumber, endChar));
+                // If we've found our matching closing tag
+                if (tagCount === 0) {
+                    return lastClosingTag;
+                }
+            }
+        }
+        lineNumber++;
+    }
+    // If we didn't find a matching closing tag but found some closing tags,
+    // return the last one we found
+    return lastClosingTag;
 }
 //# sourceMappingURL=extension.js.map
